@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyDesk - Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded shadow-lg border border-gray-700 w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-200">StudyDesk Admin</h1>
+
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="username" class="block text-gray-300 mb-2">Username</label>
+                <input type="text" id="username" class="w-full p-3 border border-gray-600 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username" required>
+            </div>
+
+            <div>
+                <label for="password" class="block text-gray-300 mb-2">Password</label>
+                <input type="password" id="password" class="w-full p-3 border border-gray-600 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter password" required>
+            </div>
+
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200">
+                Login
+            </button>
+        </form>
+
+        <div id="error-message" class="mt-4 text-red-400 text-center hidden"></div>
+
+        <div class="mt-6 text-center">
+            <a href="index.html" class="text-purple-400 hover:text-purple-300">← Back to StudyDesk</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+
+            try {
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = 'admin.html';
+                } else {
+                    errorMessage.textContent = result.message || 'Login failed';
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

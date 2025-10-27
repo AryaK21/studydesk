@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyDesk - Desk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <header class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold" id="desk-title">Desk</h1>
+            <a href="index.html" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Back to Home</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Video Player</h2>
+            <div id="video-player" class="aspect-video bg-black rounded">
+                <!-- YouTube embed will be loaded here -->
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Playlist</h2>
+            <div id="playlist" class="space-y-2">
+                <!-- Videos will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const deskId = urlParams.get('id');
+        let currentDesk = null;
+        let currentVideoIndex = 0;
+
+        // Load desk data from API
+        async function loadDesk() {
+            try {
+                const response = await fetch(`api.php/desks/${deskId}`);
+                currentDesk = await response.json();
+
+                if (currentDesk && !currentDesk.error) {
+                    document.getElementById('desk-title').textContent = currentDesk.name;
+                    loadPlaylist();
+                    if (currentDesk.videos && currentDesk.videos.length > 0) {
+                        loadVideo(currentDesk.videos[0]);
+                    }
+                } else {
+                    document.getElementById('desk-title').textContent = 'Desk not found';
+                }
+            } catch (error) {
+                console.error('Error loading desk:', error);
+                document.getElementById('desk-title').textContent = 'Error loading desk';
+            }
+        }
+
+        // Load playlist
+        function loadPlaylist() {
+            const playlist = document.getElementById('playlist');
+            playlist.innerHTML = '';
+
+            if (currentDesk && currentDesk.videos) {
+                currentDesk.videos.forEach((video, index) => {
+                    const videoItem = document.createElement('div');
+                    videoItem.className = `p-2 rounded cursor-pointer ${index === currentVideoIndex ? 'bg-purple-600' : 'hover:bg-gray-700'}`;
+                    videoItem.innerHTML = `
+                        <p class="font-semibold text-white">${video.title}</p>
+                        <p class="text-sm text-gray-400">${video.url}</p>
+                    `;
+                    videoItem.addEventListener('click', () => {
+                        currentVideoIndex = index;
+                        loadVideo(video);
+                        loadPlaylist(); // Refresh to show active video
+                    });
+                    playlist.appendChild(videoItem);
+                });
+            }
+        }
+
+        // Load video in player
+        function loadVideo(video) {
+            const player = document.getElementById('video-player');
+            const videoId = extractYouTubeId(video.url);
+            if (videoId) {
+                player.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+            } else {
+                player.innerHTML = '<p class="text-gray-300 p-4">Invalid YouTube URL</p>';
+            }
+        }
+
+        // Extract YouTube video ID from URL
+        function extractYouTubeId(url) {
+            const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+            return match ? match[1] : null;
+        }
+
+        loadDesk();
+    </script>
+</body>
+</html>

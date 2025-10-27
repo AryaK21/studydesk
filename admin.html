@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyDesk - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <header class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">StudyDesk Admin</h1>
+            <div class="flex items-center space-x-4">
+                <span id="welcome-message" class="text-gray-300"></span>
+                <a href="logout.php" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</a>
+                <a href="index.html" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Back to Home</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Create New Desk</h2>
+            <form id="create-desk-form">
+                <div class="mb-4">
+                    <label for="desk-name" class="block text-gray-300">Desk Name</label>
+                    <input type="text" id="desk-name" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="desk-description" class="block text-gray-300">Description</label>
+                    <textarea id="desk-description" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" rows="3"></textarea>
+                </div>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Create Desk</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6" id="edit-desk-section" style="display: none;">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Edit Desk</h2>
+            <form id="edit-desk-form">
+                <input type="hidden" id="edit-desk-id">
+                <div class="mb-4">
+                    <label for="edit-desk-name" class="block text-gray-300">Desk Name</label>
+                    <input type="text" id="edit-desk-name" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-desk-description" class="block text-gray-300">Description</label>
+                    <textarea id="edit-desk-description" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" rows="3"></textarea>
+                </div>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Update Desk</button>
+                <button type="button" onclick="cancelEditDesk()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded ml-2">Cancel</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6" id="add-video-section" style="display: none;">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Add Video to Desk</h2>
+            <form id="add-video-form">
+                <input type="hidden" id="current-desk-id">
+                <div class="mb-4">
+                    <label for="video-title" class="block text-gray-300">Video Title</label>
+                    <input type="text" id="video-title" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="video-url" class="block text-gray-300">YouTube URL</label>
+                    <input type="url" id="video-url" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Add Video</button>
+                <button type="button" onclick="cancelAddVideo()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded ml-2">Cancel</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6" id="edit-video-section" style="display: none;">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Edit Video</h2>
+            <form id="edit-video-form">
+                <input type="hidden" id="edit-video-id">
+                <div class="mb-4">
+                    <label for="edit-video-title" class="block text-gray-300">Video Title</label>
+                    <input type="text" id="edit-video-title" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-video-url" class="block text-gray-300">YouTube URL</label>
+                    <input type="url" id="edit-video-url" class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white" required>
+                </div>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Update Video</button>
+                <button type="button" onclick="cancelEditVideo()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded ml-2">Cancel</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700 mb-6" id="manage-videos-section" style="display: none;">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Manage Videos</h2>
+            <div id="videos-list" class="space-y-4"></div>
+            <button onclick="cancelManageVideos()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded mt-4">Close</button>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded shadow-lg border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200">Existing Desks</h2>
+            <div id="desks-list" class="space-y-4">
+                <!-- Desks will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Check login status
+        async function checkLogin() {
+            try {
+                const response = await fetch('check_session.php');
+                const session = await response.json();
+
+                if (!session.logged_in) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                document.getElementById('welcome-message').textContent = `Welcome, ${session.username}`;
+            } catch (error) {
+                console.error('Session check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Load desks from API
+        async function loadDesks() {
+            try {
+                const response = await fetch('api.php/desks');
+                const desks = await response.json();
+                const desksList = document.getElementById('desks-list');
+                desksList.innerHTML = '';
+
+                desks.forEach(desk => {
+                    const deskItem = document.createElement('div');
+                    deskItem.className = 'border border-gray-600 p-4 rounded bg-gray-700';
+                    deskItem.innerHTML = `
+                        <h3 class="text-lg font-semibold mb-2 text-white">${desk.name}</h3>
+                        <p class="text-gray-300 mb-2">${desk.description}</p>
+                        <p class="text-sm text-gray-400 mb-4">${desk.video_count} videos</p>
+                        <button onclick="addVideo('${desk.id}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2">Add Video</button>
+                        <button onclick="manageVideos('${desk.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-2">Manage Videos</button>
+                        <button onclick="editDesk('${desk.id}')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded mr-2">Edit</button>
+                        <button onclick="deleteDesk('${desk.id}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Delete</button>
+                    `;
+                    desksList.appendChild(deskItem);
+                });
+            } catch (error) {
+                console.error('Error loading desks:', error);
+                document.getElementById('desks-list').innerHTML = '<p class="text-red-400">Error loading desks</p>';
+            }
+        }
+
+        // Create new desk
+        document.getElementById('create-desk-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('desk-name').value;
+            const description = document.getElementById('desk-description').value;
+
+            try {
+                const response = await fetch('api.php/desks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, description }),
+                });
+
+                if (response.ok) {
+                    document.getElementById('desk-name').value = '';
+                    document.getElementById('desk-description').value = '';
+                    loadDesks();
+                } else {
+                    alert('Error creating desk');
+                }
+            } catch (error) {
+                console.error('Error creating desk:', error);
+                alert('Error creating desk');
+            }
+        });
+
+        // Delete desk
+        async function deleteDesk(id) {
+            if (confirm('Are you sure you want to delete this desk?')) {
+                try {
+                    const response = await fetch(`api.php/desks/${id}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        loadDesks();
+                    } else {
+                        alert('Error deleting desk');
+                    }
+                } catch (error) {
+                    console.error('Error deleting desk:', error);
+                    alert('Error deleting desk');
+                }
+            }
+        }
+
+        // Add video to desk
+        function addVideo(deskId) {
+            document.getElementById('current-desk-id').value = deskId;
+            document.getElementById('add-video-section').style.display = 'block';
+        }
+
+        // Cancel add video
+        function cancelAddVideo() {
+            document.getElementById('add-video-section').style.display = 'none';
+            document.getElementById('video-title').value = '';
+            document.getElementById('video-url').value = '';
+        }
+
+        // Handle add video form submission
+        document.getElementById('add-video-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const deskId = document.getElementById('current-desk-id').value;
+            const title = document.getElementById('video-title').value;
+            const url = document.getElementById('video-url').value;
+
+            try {
+                const response = await fetch('api.php/videos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ desk_id: deskId, title, url }),
+                });
+
+                if (response.ok) {
+                    cancelAddVideo();
+                    loadDesks();
+                } else {
+                    alert('Error adding video');
+                }
+            } catch (error) {
+                console.error('Error adding video:', error);
+                alert('Error adding video');
+            }
+        });
+
+        // Edit desk
+        async function editDesk(id) {
+            try {
+                const response = await fetch(`api.php/desks/${id}`);
+                const desk = await response.json();
+
+                if (desk && !desk.error) {
+                    document.getElementById('edit-desk-id').value = desk.id;
+                    document.getElementById('edit-desk-name').value = desk.name;
+                    document.getElementById('edit-desk-description').value = desk.description;
+                    document.getElementById('edit-desk-section').style.display = 'block';
+                } else {
+                    alert('Error loading desk data');
+                }
+            } catch (error) {
+                console.error('Error loading desk:', error);
+                alert('Error loading desk data');
+            }
+        }
+
+        // Cancel edit desk
+        function cancelEditDesk() {
+            document.getElementById('edit-desk-section').style.display = 'none';
+            document.getElementById('edit-desk-name').value = '';
+            document.getElementById('edit-desk-description').value = '';
+        }
+
+        // Handle edit desk form submission
+        document.getElementById('edit-desk-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-desk-id').value;
+            const name = document.getElementById('edit-desk-name').value;
+            const description = document.getElementById('edit-desk-description').value;
+
+            try {
+                const response = await fetch(`api.php/desks/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, description }),
+                });
+
+                if (response.ok) {
+                    cancelEditDesk();
+                    loadDesks();
+                } else {
+                    alert('Error updating desk');
+                }
+            } catch (error) {
+                console.error('Error updating desk:', error);
+                alert('Error updating desk');
+            }
+        });
+
+        // Manage videos for a desk
+        async function manageVideos(deskId) {
+            try {
+                const response = await fetch(`api.php/videos?desk_id=${deskId}`);
+                const videos = await response.json();
+
+                const videosList = document.getElementById('videos-list');
+                videosList.innerHTML = '';
+
+                if (videos.length === 0) {
+                    videosList.innerHTML = '<p class="text-gray-400">No videos in this desk</p>';
+                } else {
+                    videos.forEach(video => {
+                        const videoItem = document.createElement('div');
+                        videoItem.className = 'border border-gray-600 p-4 rounded bg-gray-700';
+                        videoItem.innerHTML = `
+                            <h4 class="text-lg font-semibold mb-2 text-white">${video.title}</h4>
+                            <p class="text-gray-300 mb-2">${video.url}</p>
+                            <button onclick="editVideo('${video.id}')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded mr-2">Edit</button>
+                            <button onclick="deleteVideo('${video.id}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Delete</button>
+                        `;
+                        videosList.appendChild(videoItem);
+                    });
+                }
+
+                document.getElementById('manage-videos-section').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                alert('Error loading videos');
+            }
+        }
+
+        // Cancel manage videos
+        function cancelManageVideos() {
+            document.getElementById('manage-videos-section').style.display = 'none';
+        }
+
+        // Delete video
+        async function deleteVideo(id) {
+            if (confirm('Are you sure you want to delete this video?')) {
+                try {
+                    const response = await fetch(`api.php/videos/${id}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        // Refresh the videos list
+                        const deskId = document.getElementById('current-desk-id').value;
+                        if (deskId) {
+                            manageVideos(deskId);
+                        } else {
+                            // If no current desk, just reload all desks
+                            loadDesks();
+                            cancelManageVideos();
+                        }
+                    } else {
+                        alert('Error deleting video');
+                    }
+                } catch (error) {
+                    console.error('Error deleting video:', error);
+                    alert('Error deleting video');
+                }
+            }
+        }
+
+        // Edit video
+        async function editVideo(id) {
+            try {
+                const response = await fetch(`api.php/videos/${id}`);
+                const video = await response.json();
+
+                if (video && !video.error) {
+                    document.getElementById('edit-video-id').value = video.id;
+                    document.getElementById('edit-video-title').value = video.title;
+                    document.getElementById('edit-video-url').value = video.url;
+                    document.getElementById('edit-video-section').style.display = 'block';
+                } else {
+                    alert('Error loading video data');
+                }
+            } catch (error) {
+                console.error('Error loading video:', error);
+                alert('Error loading video data');
+            }
+        }
+
+        // Cancel edit video
+        function cancelEditVideo() {
+            document.getElementById('edit-video-section').style.display = 'none';
+            document.getElementById('edit-video-title').value = '';
+            document.getElementById('edit-video-url').value = '';
+        }
+
+        // Handle edit video form submission
+        document.getElementById('edit-video-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-video-id').value;
+            const title = document.getElementById('edit-video-title').value;
+            const url = document.getElementById('edit-video-url').value;
+
+            try {
+                const response = await fetch(`api.php/videos/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, url }),
+                });
+
+                if (response.ok) {
+                    cancelEditVideo();
+                    // Refresh the videos list
+                    const deskId = document.getElementById('current-desk-id').value;
+                    if (deskId) {
+                        manageVideos(deskId);
+                    }
+                    loadDesks(); // Refresh desk list to update video counts
+                } else {
+                    alert('Error updating video');
+                }
+            } catch (error) {
+                console.error('Error updating video:', error);
+                alert('Error updating video');
+            }
+        });
+
+        checkLogin();
+        loadDesks();
+    </script>
+</body>
+</html>
