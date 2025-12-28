@@ -1,4 +1,5 @@
 <?php
+require_once 'db.php';
 session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -24,16 +25,20 @@ if (!$data || !isset($data['username']) || !isset($data['password'])) {
 $username = trim($data['username']);
 $password = $data['password'];
 
-// Simple authentication - in production, use proper password hashing
-// For demo purposes, using simple credentials
-$valid_username = 'admin';
-$valid_password = 'studydesk';
+try {
+    // Check if user exists
+    $stmt = $pdo->prepare("SELECT id, password_hash FROM users WHERE username = ?");
+    $stmt->execute([$username]);
+    $user = $stmt->fetch();
 
-if ($username === $valid_username && $password === $valid_password) {
-    $_SESSION['admin_logged_in'] = true;
-    $_SESSION['admin_username'] = $username;
-    echo json_encode(['success' => true, 'message' => 'Login successful']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Invalid username or password']);
+    if ($user && password_verify($password, $user['password_hash'])) {
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $username;
+        echo json_encode(['success' => true, 'message' => 'Login successful']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid username or password']);
+    }
+} catch(PDOException $e) {
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

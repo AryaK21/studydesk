@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyDesk - Pomodoro Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.8), 0 0 60px rgba(168, 85, 247, 0.4); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-glow { animation: glow 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .animate-breathe { animation: breathe 4s ease-in-out infinite; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-morphism-hover {
+            transition: all 0.3s ease;
+        }
+        .glass-morphism-hover:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 40px rgba(168, 85, 247, 0.2);
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring__circle {
+            transition: stroke-dasharray 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white min-h-screen overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse-glow"></div>
+        <div class="absolute top-1/2 -left-40 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse-glow" style="animation-delay: 1s;"></div>
+        <div class="absolute -bottom-40 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse-glow" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-morphism border-b border-white/10">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-2xl shadow-purple-500/50 animate-glow">
+                        <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <a href="index.html" class="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">StudyDesk</a>
+                </div>
+
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-300 hover:text-white transition-all duration-300 relative group">
+                        <span>Dashboard</span>
+                        <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                    <a href="#timer" class="text-gray-300 hover:text-white transition-all duration-300 relative group">
+                        <span>Pomodoro</span>
+                        <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+
+                    <div id="user-menu" class="flex items-center space-x-4">
+                        <a href="logout.php" class="glass-morphism glass-morphism-hover px-6 py-3 rounded-xl font-medium transition-all flex items-center space-x-2 shadow-2xl">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </div>
+
+                    <a id="login-btn" href="login.html" class="glass-morphism glass-morphism-hover px-6 py-3 rounded-xl font-medium transition-all flex items-center space-x-2 shadow-2xl">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>Sign In</span>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" class="lg:hidden glass-morphism glass-morphism-hover p-3 rounded-xl">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="lg:hidden mt-6 pb-4 border-t border-white/10 pt-6 hidden">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <a href="index.html" class="glass-morphism glass-morphism-hover p-4 rounded-xl text-center transition-all">
+                        <i data-lucide="home" class="w-6 h-6 mx-auto mb-2"></i>
+                        <span class="text-sm">Dashboard</span>
+                    </a>
+                    <a href="#timer" class="glass-morphism glass-morphism-hover p-4 rounded-xl text-center transition-all">
+                        <i data-lucide="timer" class="w-6 h-6 mx-auto mb-2"></i>
+                        <span class="text-sm">Pomodoro</span>
+                    </a>
+                </div>
+
+                <div id="mobile-user-menu" class="space-y-4">
+                    <a href="logout.php" class="w-full glass-morphism glass-morphism-hover px-6 py-4 rounded-xl font-medium transition-all flex items-center justify-center space-x-2">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Sign Out</span>
+                    </a>
+                    <a id="mobile-login-btn" href="login.html" class="w-full glass-morphism glass-morphism-hover px-6 py-4 rounded-xl font-medium transition-all flex items-center justify-center space-x-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>Sign In</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-6">
+        <div class="container mx-auto text-center">
+            <div class="max-w-4xl mx-auto">
+                <div class="animate-float mb-8">
+                    <h1 class="text-6xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-white via-purple-200 via-pink-200 to-blue-200 bg-clip-text text-transparent leading-tight">
+                        Focus Timer
+                    </h1>
+                    <div class="w-32 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mb-8 rounded-full"></div>
+                </div>
+
+                <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+                    Master your time with the scientifically proven Pomodoro Technique. Work smarter, not harder.
+                </p>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+                    <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl text-center">
+                        <div class="text-4xl font-bold text-white mb-2" id="total-sessions">0</div>
+                        <div class="text-gray-400">Sessions Completed</div>
+                    </div>
+                    <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl text-center">
+                        <div class="text-4xl font-bold text-white mb-2" id="total-focus-time">0m</div>
+                        <div class="text-gray-400">Focus Time</div>
+                    </div>
+                    <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl text-center">
+                        <div class="text-4xl font-bold text-white mb-2" id="current-streak">0</div>
+                        <div class="text-gray-400">Day Streak</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timer Section -->
+    <section id="timer" class="pb-20 px-6">
+        <div class="container mx-auto">
+            <div class="max-w-2xl mx-auto">
+                <!-- Main Timer Display -->
+                <div class="glass-morphism rounded-3xl p-12 mb-8 text-center relative overflow-hidden">
+                    <!-- Background Pattern -->
+                    <div class="absolute inset-0 opacity-10">
+                        <div class="absolute top-10 left-10 w-20 h-20 bg-purple-500 rounded-full animate-pulse-glow"></div>
+                        <div class="absolute bottom-10 right-10 w-16 h-16 bg-pink-500 rounded-full animate-pulse-glow" style="animation-delay: 1s;"></div>
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500/20 rounded-full animate-pulse-glow" style="animation-delay: 2s;"></div>
+                    </div>
+
+                    <div class="relative z-10">
+                        <!-- Circular Progress -->
+                        <div class="w-80 h-80 mx-auto mb-8 relative">
+                            <svg class="progress-ring w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="transparent"/>
+                                <circle cx="50" cy="50" r="45" stroke="url(#gradient)" stroke-width="3" fill="transparent" class="progress-ring__circle" id="progress-circle"/>
+                            </svg>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#a855f7"/>
+                                    <stop offset="100%" style="stop-color:#ec4899"/>
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Timer Display -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div id="timer-display" class="text-7xl md:text-8xl font-mono font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-4 animate-breathe">
+                                        25:00
+                                    </div>
+                                    <div id="session-type" class="text-2xl font-semibold text-gray-300">
+                                        Focus Session
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Control Buttons -->
+                        <div class="flex justify-center space-x-6 mb-8">
+                            <button id="start-btn" class="glass-morphism glass-morphism-hover px-8 py-4 rounded-2xl font-bold text-lg transition-all flex items-center space-x-3 shadow-2xl">
+                                <i data-lucide="play" class="w-6 h-6"></i>
+                                <span>Start</span>
+                            </button>
+                            <button id="pause-btn" class="glass-morphism glass-morphism-hover px-8 py-4 rounded-2xl font-bold text-lg transition-all flex items-center space-x-3 shadow-2xl disabled:opacity-50" disabled>
+                                <i data-lucide="pause" class="w-6 h-6"></i>
+                                <span>Pause</span>
+                            </button>
+                            <button id="reset-btn" class="glass-morphism glass-morphism-hover px-8 py-4 rounded-2xl font-bold text-lg transition-all flex items-center space-x-3 shadow-2xl">
+                                <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+
+                        <!-- Session Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="glass-morphism glass-morphism-hover p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold text-purple-400 mb-1">25</div>
+                                <div class="text-sm text-gray-400">Work Minutes</div>
+                            </div>
+                            <div class="glass-morphism glass-morphism-hover p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold text-pink-400 mb-1">5</div>
+                                <div class="text-sm text-gray-400">Break Minutes</div>
+                            </div>
+                            <div class="glass-morphism glass-morphism-hover p-4 rounded-xl text-center">
+                                <div class="text-2xl font-bold text-blue-400 mb-1" id="cycles-completed">0</div>
+                                <div class="text-sm text-gray-400">Cycles Done</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips Section -->
+                <div class="glass-morphism rounded-3xl p-8">
+                    <h3 class="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6 text-center">
+                        Pomodoro Tips
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl">
+                            <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/50">
+                                <i data-lucide="target" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Stay Focused</h4>
+                            <p class="text-gray-400 text-sm">Eliminate distractions and focus solely on your task during work sessions.</p>
+                        </div>
+
+                        <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/50">
+                                <i data-lucide="coffee" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Take Breaks</h4>
+                            <p class="text-gray-400 text-sm">Use break time to stretch, hydrate, or do something enjoyable.</p>
+                        </div>
+
+                        <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl">
+                            <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-red-500 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-pink-500/50">
+                                <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Track Progress</h4>
+                            <p class="text-gray-400 text-sm">Mark tasks as complete and celebrate your achievements.</p>
+                        </div>
+
+                        <div class="glass-morphism glass-morphism-hover p-6 rounded-2xl">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-green-500/50">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Build Habits</h4>
+                            <p class="text-gray-400 text-sm">Consistency is key. Make Pomodoro a daily part of your routine.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Check login status
+        async function checkLogin() {
+            try {
+                const response = await fetch('check_session.php');
+                const session = await response.json();
+
+                if (session.logged_in) {
+                    document.getElementById('login-btn').style.display = 'none';
+                    document.getElementById('mobile-login-btn').style.display = 'none';
+                    document.getElementById('user-menu').style.display = 'flex';
+                    document.getElementById('mobile-user-menu').style.display = 'block';
+                } else {
+                    document.getElementById('login-btn').style.display = 'inline-flex';
+                    document.getElementById('mobile-login-btn').style.display = 'flex';
+                    document.getElementById('user-menu').style.display = 'none';
+                    document.getElementById('mobile-user-menu').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Session check error:', error);
+            }
+        }
+
+        // Timer variables
+        let timer;
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let isRunning = false;
+        let isWorkSession = true;
+        let cyclesCompleted = 0;
+        let totalFocusTime = 0;
+
+        const timerDisplay = document.getElementById('timer-display');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const sessionType = document.getElementById('session-type');
+        const progressCircle = document.getElementById('progress-circle');
+        const radius = 45;
+        const circumference = radius * 2 * Math.PI;
+
+        // Initialize progress circle
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            // Update progress circle
+            const totalTime = isWorkSession ? 25 * 60 : 5 * 60;
+            const progress = (totalTime - timeLeft) / totalTime;
+            const offset = circumference - (progress * circumference);
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                startBtn.innerHTML = '<i data-lucide="square" class="w-6 h-6"></i><span>Stop</span>';
+                startBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                startBtn.classList.remove('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'hover:from-purple-700', 'hover:to-pink-700');
+
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                        startBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6"></i><span>Start</span>';
+                        startBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                        startBtn.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'hover:from-purple-700', 'hover:to-pink-700');
+
+                        // Switch sessions
+                        if (isWorkSession) {
+                            totalFocusTime += 25;
+                            cyclesCompleted++;
+                            document.getElementById('cycles-completed').textContent = cyclesCompleted;
+                            document.getElementById('total-focus-time').textContent = `${totalFocusTime}m`;
+                            sessionType.textContent = 'Break Time';
+                            timeLeft = 5 * 60; // 5 minutes break
+                            sessionType.style.color = '#ec4899';
+                            isWorkSession = false;
+                            showNotification('Work session complete! Take a break.', 'success');
+                        } else {
+                            timeLeft = 25 * 60; // Back to work
+                            sessionType.textContent = 'Focus Session';
+                            sessionType.style.color = '#a855f7';
+                            isWorkSession = true;
+                            showNotification('Break time over! Back to work.', 'info');
+                        }
+                        updateDisplay();
+                        lucide.createIcons();
+                    }
+                }, 1000);
+            } else {
+                // Stop timer
+                clearInterval(timer);
+                isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                startBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6"></i><span>Start</span>';
+                startBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                startBtn.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'hover:from-purple-700', 'hover:to-pink-700');
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            isWorkSession = true;
+            sessionType.textContent = 'Focus Session';
+            sessionType.style.color = '#a855f7';
+            updateDisplay();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            startBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6"></i><span>Start</span>';
+            startBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+            startBtn.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'hover:from-purple-700', 'hover:to-pink-700');
+            lucide.createIcons();
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-24 right-6 glass-morphism px-6 py-4 rounded-2xl z-50 transform translate-x-full transition-all duration-500 shadow-2xl`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r ${type === 'success' ? 'from-green-500 to-blue-500' : 'from-purple-500 to-pink-500'} rounded-lg flex items-center justify-center">
+                        <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <p class="text-white font-medium">${message}</p>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+            lucide.createIcons();
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 3000);
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Initialize
+        checkLogin();
+        updateDisplay();
+    </script>
+</body>
+</html>
